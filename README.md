@@ -1,6 +1,8 @@
 # PocariSweatのリモートリポジトリ
 
 ## ~~pipとvenvを使って、仮想環境を作成し、仮想環境内でパッケージをインストールする~~
+<!--
+
 venvは仮想環境が作れるやつ(インストールは多分いらない)
 ```bash
 python -m venv --help
@@ -33,3 +35,5 @@ pip install -r requirements.txt
 ``` bash
 deactivate
 ```
+
+!-->
