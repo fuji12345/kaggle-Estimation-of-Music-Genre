@@ -1,25 +1,25 @@
 # PocariSweatのリモートリポジトリ
 
 ## Poetryの使用方法
-- ### インストール
+### インストール
 1. poetryを[こことかから](https://cocoatomo.github.io/poetry-ja/)インストールする
 2. パスを通す ← **poetry パス windows**とかで検索すれば出てくると思います
 3. ```poetry --version```でバージョンが表示されればok
 
-- ### 仮想環境の作成とライブラリのインストール
+### 仮想環境の作成とライブラリのインストール
 1. ```git clone```とか```git pull```とかでリモートの最新の```pyproject.toml```と```poetry.lock```をローカルに持ってくる
 2. ```poetry install```で仮想環境の作成とライブラリとかのインストールができる
 3. ```poetry env list```とかで仮想環境が表示されればok
 
-- ### 仮想環境への出入り
-  仮想環境へ入る
-  ```bash
-  poetry shell
-  ```
-  仮想環境から出る
-  ```bash
-  exit
-  ```
+### 仮想環境への出入り
+仮想環境へ入る
+```bash
+poetry shell
+```
+仮想環境から出る
+```bash
+exit
+```
 
 ## ~~pipとvenvを使って、仮想環境を作成し、仮想環境内でパッケージをインストールする~~
 <!--
