@@ -1,4 +1,15 @@
-# PocariSweatのリモートリポジトリ
+# PocariSweat
+
+## 環境設定
+### 仮想環境の構築及び、パッケージのインストール
+```bash
+poetry install
+```
+### 実行
+仮想環境内で
+```bash
+python main.py
+```
 
 ## Poetryの使用方法
 ### インストール
@@ -8,7 +19,7 @@
 
 ### 仮想環境の作成とライブラリのインストール
 1. ```git clone```とか```git pull```とかでリモートの最新の```pyproject.toml```と```poetry.lock```をローカルに持ってくる
-2. ```poetry install```で仮想環境の作成とライブラリとかのインストールができる
+2. ```poetry install```で仮想環境の作成とパッケージのインストールができる
 3. ```poetry env list```とかで仮想環境が表示されればok
 
 ### 仮想環境への出入り
