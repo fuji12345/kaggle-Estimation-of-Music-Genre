@@ -1,3 +1,5 @@
 defaults:
   - model: xgboost
   - data: base
+
+n_splits: 20
