@@ -11,6 +11,7 @@ import dataset
 import model
 from model import XGBoost
 
+
 class Exp:
     def __init__(self, config) -> None:
         self.model_name = config.model.name
@@ -45,7 +46,7 @@ class Exp:
         predict = stats.mode(predict_concat, axis=1)[0].flatten().astype(np.int64)
         return predict
 
-    def make_output_file(self, predict, output_path="outputs/pocari4.csv"):
+    def make_output_file(self, predict, output_path="outputs/submmition.csv"):
         decode_predict = self.data.inverse_label_encoding(predict)
         decode_predict = pd.DataFrame(decode_predict, columns=[self.target_column])
         output_df = pd.concat([self.data.test_id_column, decode_predict], axis=1)
@@ -74,10 +75,7 @@ class Exp:
         train_X, train_y = self.get_x_y(self.train)
         skf = StratifiedKFold(n_splits=self.n_splits, shuffle=True)
         for i_fold, (train_index, val_index) in enumerate(skf.split(train_X, train_y)):
-            train_data, val_data = (
-                self.train.iloc[train_index],
-                self.train.iloc[val_index],
-            )
+            train_data, val_data = self.train.iloc[train_index], self.train.iloc[val_index]
             self.each_fold(i_fold, train_data, val_data)
 
         predict = self.majority_voting_of_predict()
