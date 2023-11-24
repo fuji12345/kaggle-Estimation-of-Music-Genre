@@ -11,13 +11,11 @@ import dataset
 import model
 from model import XGBoost
 
-
 class Exp:
     def __init__(self, config) -> None:
         self.model_name = config.model.name
         self.n_splits = config.n_splits
 
-        # MusicGenreクラスのメソッドを使うためのインスタンス
         self.data = getattr(dataset, config.data.name)()
         self.data.label_encoding()
         self.data.preprocessing()

@@ -17,9 +17,7 @@ class MusicGenre:
         self.test = pd.read_csv(to_absolute_path("dataset/test.csv"))
 
         self.target_column = "genre"
-        self.columns = [
-            x for x in self.train.columns.tolist() if x != self.target_column
-        ]
+        self.columns = [x for x in self.train.columns.tolist() if x != self.target_column]
 
         self.test_id_column = self.test["ID"]
         self.drop_id_and_type_songname()
