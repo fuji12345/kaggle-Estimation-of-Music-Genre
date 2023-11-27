@@ -13,11 +13,13 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 class MusicGenre:
     def __init__(self) -> None:
-        self.train = pd.read_csv(to_absolute_path("dataset/train.csv"))
-        self.test = pd.read_csv(to_absolute_path("dataset/test.csv"))
+        self.train = pd.read_csv(to_absolute_path("datasets/train.csv"))
+        self.test = pd.read_csv(to_absolute_path("datasets/test.csv"))
 
         self.target_column = "genre"
-        self.columns = [x for x in self.train.columns.tolist() if x != self.target_column]
+        self.columns = [
+            x for x in self.train.columns.tolist() if x != self.target_column
+        ]
 
         self.test_id_column = self.test["ID"]
         self.drop_id_and_type()
