@@ -17,9 +17,8 @@ class MusicGenre:
         self.test = pd.read_csv(to_absolute_path("datasets/test.csv"))
 
         self.target_column = "genre"
-        self.columns = [
-            x for x in self.train.columns.tolist() if x != self.target_column
-        ]
+
+        self.columns = [x for x in self.train.columns.tolist() if x != self.target_column]
 
         self.test_id_column = self.test["ID"]
         self.drop_id_and_type()
@@ -51,9 +50,7 @@ class MusicGenre:
 
     def label_encoding(self):
         self.le = LabelEncoder()
-        self.train[self.target_column] = self.le.fit_transform(
-            self.train[self.target_column]
-        )
+        self.train[self.target_column] = self.le.fit_transform(self.train[self.target_column])
 
     def inverse_label_encoding(self, predict):
         decode_predict = self.le.inverse_transform(predict)
