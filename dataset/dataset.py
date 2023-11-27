@@ -31,7 +31,7 @@ class MusicGenre:
         self.train["energy_loudness"] = self.train["energy"] * self.train["loudness"]
         self.test["energy_loudness"] = self.test["energy"] * self.test["loudness"]
 
-    def flatten_vector(vector):
+    def flatten_vector(self, vector):
         summed_vector = tf.reduce_sum(vector, axis=1)
         return tf.reshape(summed_vector, shape=(-1,))
 
@@ -41,8 +41,8 @@ class MusicGenre:
         )
         vectors = embed(self.train["song_name"])
         test_vectors = embed(self.test["song_name"])
-        flattened_vectors = MusicGenre.flatten_vector(vectors)
-        flattened_test_vectors = MusicGenre.flatten_vector(test_vectors)
+        flattened_vectors = self.flatten_vector(vectors)
+        flattened_test_vectors = self.flatten_vector(test_vectors)
         self.train["song_vector"] = flattened_vectors.numpy()
         self.test["song_vector"] = flattened_test_vectors.numpy()
         self.train.drop(["song_name"], axis=1, inplace=True)
