@@ -17,7 +17,9 @@ class MusicGenre:
         self.test = pd.read_csv(to_absolute_path("datasets/test.csv"))
 
         self.target_column = "genre"
-        self.columns = [x for x in self.train.columns.tolist() if x != self.target_column]
+        self.columns = [
+            x for x in self.train.columns.tolist() if x != self.target_column
+        ]
 
         self.test_id_column = self.test["ID"]
         self.drop_id_and_type()
@@ -30,10 +32,6 @@ class MusicGenre:
         self.train["energy_loudness"] = self.train["energy"] * self.train["loudness"]
         self.test["energy_loudness"] = self.test["energy"] * self.test["loudness"]
 
-    def cos_sim(v1, v2):
-        return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
-
-    @staticmethod
     def flatten_vector(vector):
         summed_vector = tf.reduce_sum(vector, axis=1)
         return tf.reshape(summed_vector, shape=(-1,))
