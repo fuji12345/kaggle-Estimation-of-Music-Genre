@@ -14,7 +14,7 @@ hydra-core = "1.1.2"
 idna = "3.3"
 importlib-resources = "5.2.3"
 joblib = "1.1.0"
-numpy = "1.22.3"
+numpy = "1.23.5"
 omegaconf = "2.1.2"
 pandas = "1.4.2"
 pillow = "9.1.0"
@@ -35,6 +35,9 @@ urllib3 = "1.26.9"
 zipp = "3.8.0"
 optuna = "^3.2.0"
 xgboost = "^2.0.2"
+tensorflow-io-gcs-filesystem = "0.31.0"
+tensorflow = "^2.10.0"
+tensorflow_text = "2.10.0"
 
 
 [build-system]

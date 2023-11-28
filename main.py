@@ -1,10 +1,9 @@
-import hydra
-
 import experiment
+import hydra
 from experiment import Exp
 
 
-@hydra.main(config_path="conf", config_name="main", version_base="1.2")
+@hydra.main(config_path="conf", config_name="main")
 def main(config):
     exp: Exp = Exp(config)
     exp.run()

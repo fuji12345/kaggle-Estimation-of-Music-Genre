@@ -1,12 +1,12 @@
+import ssl
+
 import pandas as pd
+import tensorflow as tf
+import tensorflow_hub as hub
+import tensorflow_text
 from hydra.utils import to_absolute_path
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-
-import tensorflow_hub as hub
-import tensorflow_text
-import tensorflow as tf
-import ssl
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -36,9 +36,7 @@ class MusicGenre:
         return tf.reshape(summed_vector, shape=(-1,))
 
     def song_vector(self):
-        embed = hub.load(
-            "https://tfhub.dev/google/universal-sentence-encoder-multilingual/3"
-        )
+        embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-multilingual/3")
         vectors = embed(self.train["song_name"])
         test_vectors = embed(self.test["song_name"])
         flattened_vectors = self.flatten_vector(vectors)
