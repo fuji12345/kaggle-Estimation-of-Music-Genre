@@ -1,5 +1,6 @@
 defaults:
   - model: xgboost
   - data: base
+  - optuna: base
 
 n_splits: 20

@@ -1,0 +1,3 @@
+use_optuna: True
+cv: 10
+n_trials: 30

@@ -11,11 +11,17 @@ import dataset
 import model
 from model import XGBoost
 
+from .custom_optuna import Optuna
+
 
 class Exp:
     def __init__(self, config) -> None:
         self.model_name = config.model.name
         self.n_splits = config.n_splits
+
+        self.use_optuna = config.optuna.use_optuna
+        self.optuna_cv = config.optuna.cv
+        self.optuna_n_trials = config.optuna.n_trials
 
         self.data = getattr(dataset, config.data.name)()
         self.data.label_encoding()
@@ -52,10 +58,12 @@ class Exp:
         output_df = pd.concat([self.data.test_id_column, decode_predict], axis=1)
         output_df.to_csv(to_absolute_path(output_path), index=False)
 
-    def each_fold(self, i_fold, train_data, val_data):
+    def each_fold(self, i_fold, train_data, val_data, best_params):
         train_X, train_y = self.get_x_y(train_data)
         current_model = getattr(model, self.model_name)()
+        current_model.set_params(best_params)
         current_model.fit(train_X, train_y)
+
         train_predict = current_model.predict(train_X)
         train_score = f1_score(train_y, train_predict, average="micro")
 
@@ -73,10 +81,14 @@ class Exp:
 
     def run(self):
         train_X, train_y = self.get_x_y(self.train)
+
+        if self.use_optuna:
+            best_params: Dict = Optuna(self.model_name, train_X, train_y, self.optuna_cv, self.optuna_n_trials).run()
+
         skf = StratifiedKFold(n_splits=self.n_splits, shuffle=True)
         for i_fold, (train_index, val_index) in enumerate(skf.split(train_X, train_y)):
             train_data, val_data = self.train.iloc[train_index], self.train.iloc[val_index]
-            self.each_fold(i_fold, train_data, val_data)
+            self.each_fold(i_fold, train_data, val_data, best_params)
 
         predict = self.majority_voting_of_predict()
         self.make_output_file(predict)
