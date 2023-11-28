@@ -13,6 +13,7 @@ def xgboost_config(trial):
         "subsample": trial.suggest_float("subsample", 0.2, 1.0),
         "lambda": trial.suggest_float("lambda", 0.0, 1.0),
         "n_estimators": trial.suggest_int(f"n_estimators", 10, 500),
+        "max_delta_step": trial.suggest_int("max_delta_step", 0, 100),
     }
     return params_dict
 
@@ -47,4 +48,9 @@ class Optuna:
         best_params = study.best_trial.params
         best_score = study.best_trial.value
         print(f"best params: {best_params}\nscore: {best_score}")
+        self.history_plot(study)
         return best_params
+
+    def history_plot(self, study):
+        fig = optuna.visualization.plot_optimization_history(study)
+        fig.show()
