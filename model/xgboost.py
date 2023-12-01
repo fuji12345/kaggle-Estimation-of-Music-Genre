@@ -12,5 +12,9 @@ class XGBoost:
         predict = self.model.predict(X)
         return predict
 
+    def predict_proba(self, X):
+        predict_proba = self.model.predict_proba(X)
+        return predict_proba
+
     def set_params(self, params: dict):
         self.model.set_params(**params)
