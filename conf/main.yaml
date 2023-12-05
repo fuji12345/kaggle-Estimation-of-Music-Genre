@@ -6,4 +6,4 @@ defaults:
 n_splits: 20
 
 voting:
-  average: false
+  is_soft_voting: true
