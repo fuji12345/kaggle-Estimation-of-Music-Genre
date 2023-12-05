@@ -1,15 +1,14 @@
 from typing import Dict
 
+import dataset
+import model
 import numpy as np
 import pandas as pd
 from hydra.utils import to_absolute_path
+from model import XGBoost
 from scipy import stats
 from sklearn.metrics import f1_score
 from sklearn.model_selection import StratifiedKFold
-
-import dataset
-import model
-from model import XGBoost
 
 from .custom_optuna import Optuna
 
@@ -58,16 +57,18 @@ class Exp:
         output_df = pd.concat([self.data.test_id_column, decode_predict], axis=1)
         output_df.to_csv(to_absolute_path(output_path), index=False)
 
-    def each_fold(self, i_fold, train_data, val_data, best_params):
-        train_X, train_y = self.get_x_y(train_data)
+    def each_fold(self, i_fold, train_data_tuple, val_data_tuple, best_params):
+        train_X, train_y = train_data_tuple
+        val_X, val_y = val_data_tuple
+
         current_model = getattr(model, self.model_name)()
-        current_model.set_params(best_params)
-        current_model.fit(train_X, train_y)
+        if best_params is not None:
+            current_model.set_params(best_params)
+        current_model.fit(train_X, train_y, eval_set=[(val_X, val_y)])
 
         train_predict = current_model.predict(train_X)
         train_score = f1_score(train_y, train_predict, average="micro")
 
-        val_X, val_y = self.get_x_y(val_data)
         val_predict = current_model.predict(val_X)
         val_score = f1_score(val_y, val_predict, average="micro")
 
@@ -80,15 +81,17 @@ class Exp:
         print(f"cv {i_fold}, train_score: {train_score}, val_score: {val_score}")
 
     def run(self):
-        train_X, train_y = self.get_x_y(self.train)
+        X, y = self.get_x_y(self.train)
 
+        best_params = None
         if self.use_optuna:
-            best_params: Dict = Optuna(self.model_name, train_X, train_y, self.optuna_cv, self.optuna_n_trials).run()
+            best_params: Dict = Optuna(self.model_name, X, y, self.optuna_cv, self.optuna_n_trials).run()
 
         skf = StratifiedKFold(n_splits=self.n_splits, shuffle=True)
-        for i_fold, (train_index, val_index) in enumerate(skf.split(train_X, train_y)):
-            train_data, val_data = self.train.iloc[train_index], self.train.iloc[val_index]
-            self.each_fold(i_fold, train_data, val_data, best_params)
+        for i_fold, (train_index, val_index) in enumerate(skf.split(X, y)):
+            train_X, train_y = X.iloc[train_index], y.iloc[train_index]
+            val_X, val_y = X.iloc[val_index], y.iloc[val_index]
+            self.each_fold(i_fold, (train_X, train_y), (val_X, val_y), best_params)
 
         predict = self.majority_voting_of_predict()
         self.make_output_file(predict)
