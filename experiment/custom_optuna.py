@@ -1,18 +1,18 @@
-import optuna
-from sklearn.model_selection import cross_val_score
-
 import model
+import numpy as np
+import optuna
+from sklearn.metrics import f1_score
+from sklearn.model_selection import StratifiedKFold
 
 
 def xgboost_config(trial):
     params_dict = {
-        "eta": trial.suggest_float("eta", 1e-4, 1.0),
+        "eta": trial.suggest_float("eta", 0.0001, 1.0),
         "gamma": trial.suggest_float("gamma", 0.0001, 0.1),
         "max_depth": trial.suggest_int("max_depth", 1, 4),
         "min_child_weight": trial.suggest_int("min_child_weight", 2, 8),
         "subsample": trial.suggest_float("subsample", 0.2, 1.0),
         "lambda": trial.suggest_float("lambda", 0.0, 1.0),
-        "n_estimators": trial.suggest_int(f"n_estimators", 10, 500),
         "max_delta_step": trial.suggest_int("max_delta_step", 0, 100),
     }
     return params_dict
@@ -26,20 +26,30 @@ def get_model_config(model_name, trial):
 
 
 class Optuna:
-    def __init__(self, model_name, X, y, cv=10, n_trials=100) -> None:
+    def __init__(self, model_name, X, y, cv, n_trials) -> None:
         self.model_name = model_name
         self.X, self.y = X, y
+
         self.cv = cv
         self.n_trials = n_trials
         self.model = getattr(model, self.model_name)()
 
     def objective(self, trial):
-        self.model_params_dict = get_model_config(self.model_name, trial)
-        self.model.set_params(self.model_params_dict)
-        scores = cross_val_score(self.model.model, self.X, self.y, cv=self.cv, scoring="f1_micro")
-        val_score_mean = scores.mean()
+        skf = StratifiedKFold(n_splits=self.cv, shuffle=True)
+        scores = np.zeros(self.cv)
+        for i_fold, (train_index, val_index) in enumerate(skf.split(self.X, self.y)):
+            train_X, train_y = self.X.iloc[train_index], self.y.iloc[train_index]
+            val_X, val_y = self.X.iloc[val_index], self.y.iloc[val_index]
 
-        return val_score_mean
+            self.model_params_dict = get_model_config(self.model_name, trial)
+
+            self.model.fit(train_X, train_y, eval_set=[(val_X, val_y)])
+            predict = self.model.predict(val_X)
+            score = f1_score(val_y, predict, average="micro")
+            scores[i_fold] = score
+
+        score_mean = np.mean(scores)
+        return score_mean
 
     def run(self):
         study = optuna.create_study(direction="maximize")
