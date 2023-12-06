@@ -23,7 +23,7 @@ class Exp:
         self.optuna_cv = config.optuna.cv
         self.optuna_n_trials = config.optuna.n_trials
 
-        self.is_soft_voting = config.voting.is_soft_voting
+        self.is_average_voting = config.voting.is_average_voting
 
         self.data = getattr(dataset, config.data.name)()
         self.data.label_encoding()
@@ -39,7 +39,7 @@ class Exp:
 
         self.models_dict: Dict[int:XGBoost] = {}
         self.test_predicts: Dict[int : np.array] = {}
-        self.val_scores: np.ndarray = np.empty(self.n_splits)
+        # self.val_scores: np.ndarray = np.empty(self.n_splits)
         self.test_predict_probas: Dict[int : np.array] = {}
 
     def get_x_y(self, data: pd.DataFrame):
@@ -63,15 +63,15 @@ class Exp:
         weights = scaler.fit_transform(diff_average)
         return weights
 
-    def soft_voting(self):
-        weights = self.calculate_weights()
+    def average_voting(self):
+        # weights = self.calculate_weights()
 
         predict_probas_list = [x for x in self.test_predict_probas.values()]
-        predict_probas_with_weights_list = []
-        for i_fold, predict_proba in enumerate(predict_probas_list):
-            predict_probas_with_weights_list.append(predict_proba * weights[i_fold])
+        # predict_probas_with_weights_list = []
+        # for i_fold, predict_proba in enumerate(predict_probas_list):
+        #     predict_probas_with_weights_list.append(predict_proba * weights[i_fold])
 
-        predict_proba_three_dimension = np.array(predict_probas_with_weights_list)
+        predict_proba_three_dimension = np.array(predict_probas_list)
         predict_proba_mean = np.mean(predict_proba_three_dimension, axis=0)
         predict = np.argmax(predict_proba_mean, axis=1)
         return predict
@@ -96,9 +96,9 @@ class Exp:
 
         val_predict = current_model.predict(val_X)
         val_score = f1_score(val_y, val_predict, average="micro")
-        self.val_scores[i_fold] = val_score
+        # self.val_scores[i_fold] = val_score
 
-        if self.is_soft_voting:
+        if self.is_average_voting:
             test_predict_proba = current_model.predict_proba(self.test)
             self.test_predict_probas[i_fold] = test_predict_proba
         else:
@@ -122,8 +122,8 @@ class Exp:
             val_X, val_y = X.iloc[val_index], y.iloc[val_index]
             self.each_fold(i_fold, (train_X, train_y), (val_X, val_y), best_params)
 
-        if self.is_soft_voting:
-            predict = self.soft_voting()
+        if self.is_average_voting:
+            predict = self.average_voting()
             print("average voting")
         else:
             predict = self.majority_voting()
