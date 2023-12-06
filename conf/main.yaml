@@ -4,3 +4,6 @@ defaults:
   - optuna: base
 
 n_splits: 20
+
+voting:
+  is_soft_voting: true

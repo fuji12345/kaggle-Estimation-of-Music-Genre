@@ -9,6 +9,7 @@ from model import XGBoost
 from scipy import stats
 from sklearn.metrics import f1_score
 from sklearn.model_selection import StratifiedKFold
+from sklearn.preprocessing import MinMaxScaler
 
 from .custom_optuna import Optuna
 
@@ -21,6 +22,8 @@ class Exp:
         self.use_optuna = config.optuna.use_optuna
         self.optuna_cv = config.optuna.cv
         self.optuna_n_trials = config.optuna.n_trials
+
+        self.is_soft_voting = config.voting.is_soft_voting
 
         self.data = getattr(dataset, config.data.name)()
         self.data.label_encoding()
@@ -35,20 +38,42 @@ class Exp:
         self.target_column = self.data.target_column
 
         self.models_dict: Dict[int:XGBoost] = {}
-        self.val_scores: Dict[int:list] = {}
         self.test_predicts: Dict[int : np.array] = {}
+        self.val_scores: np.ndarray = np.empty(self.n_splits)
+        self.test_predict_probas: Dict[int : np.array] = {}
 
     def get_x_y(self, data: pd.DataFrame):
         X = data.drop(self.target_column, axis=1)
         y = data[self.target_column]
         return X, y
 
-    def majority_voting_of_predict(self):
+    def majority_voting(self):
         predict_concat = np.zeros((self.test.shape[0], self.n_splits))
         for i_fold, predict in self.test_predicts.items():
             predict_concat[:, i_fold] = predict
 
         predict = stats.mode(predict_concat, axis=1)[0].flatten().astype(np.int64)
+        return predict
+
+    def calculate_weights(self):
+        average_val_score = np.mean(self.val_scores)
+        diff_average = self.val_scores - average_val_score
+        diff_average = diff_average.reshape(-1, 1)
+        scaler = MinMaxScaler()
+        weights = scaler.fit_transform(diff_average)
+        return weights
+
+    def soft_voting(self):
+        weights = self.calculate_weights()
+
+        predict_probas_list = [x for x in self.test_predict_probas.values()]
+        predict_probas_with_weights_list = []
+        for i_fold, predict_proba in enumerate(predict_probas_list):
+            predict_probas_with_weights_list.append(predict_proba * weights[i_fold])
+
+        predict_proba_three_dimension = np.array(predict_probas_with_weights_list)
+        predict_proba_mean = np.mean(predict_proba_three_dimension, axis=0)
+        predict = np.argmax(predict_proba_mean, axis=1)
         return predict
 
     def make_output_file(self, predict, output_path="outputs/submmition.csv"):
@@ -62,7 +87,7 @@ class Exp:
         val_X, val_y = val_data_tuple
 
         current_model = getattr(model, self.model_name)()
-        if best_params is not None:
+        if self.use_optuna and best_params is not None:
             current_model.set_params(best_params)
         current_model.fit(train_X, train_y, eval_set=[(val_X, val_y)])
 
@@ -71,12 +96,16 @@ class Exp:
 
         val_predict = current_model.predict(val_X)
         val_score = f1_score(val_y, val_predict, average="micro")
+        self.val_scores[i_fold] = val_score
 
-        test_predict = current_model.predict(self.test)
+        if self.is_soft_voting:
+            test_predict_proba = current_model.predict_proba(self.test)
+            self.test_predict_probas[i_fold] = test_predict_proba
+        else:
+            test_predict = current_model.predict(self.test)
+            self.test_predicts[i_fold] = test_predict
 
         self.models_dict[i_fold] = current_model
-        self.val_scores[i_fold] = val_score
-        self.test_predicts[i_fold] = test_predict
 
         print(f"cv {i_fold}, train_score: {train_score}, val_score: {val_score}")
 
@@ -93,5 +122,11 @@ class Exp:
             val_X, val_y = X.iloc[val_index], y.iloc[val_index]
             self.each_fold(i_fold, (train_X, train_y), (val_X, val_y), best_params)
 
-        predict = self.majority_voting_of_predict()
+        if self.is_soft_voting:
+            predict = self.soft_voting()
+            print("average voting")
+        else:
+            predict = self.majority_voting()
+            print("majority voting")
+
         self.make_output_file(predict)
