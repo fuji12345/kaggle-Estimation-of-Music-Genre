@@ -39,7 +39,6 @@ class Exp:
 
         self.models_dict: Dict[int:XGBoost] = {}
         self.test_predicts: Dict[int : np.array] = {}
-        # self.val_scores: np.ndarray = np.empty(self.n_splits)
         self.test_predict_probas: Dict[int : np.array] = {}
 
     def get_x_y(self, data: pd.DataFrame):
@@ -64,13 +63,7 @@ class Exp:
         return weights
 
     def average_voting(self):
-        # weights = self.calculate_weights()
-
         predict_probas_list = [x for x in self.test_predict_probas.values()]
-        # predict_probas_with_weights_list = []
-        # for i_fold, predict_proba in enumerate(predict_probas_list):
-        #     predict_probas_with_weights_list.append(predict_proba * weights[i_fold])
-
         predict_proba_three_dimension = np.array(predict_probas_list)
         predict_proba_mean = np.mean(predict_proba_three_dimension, axis=0)
         predict = np.argmax(predict_proba_mean, axis=1)
@@ -82,9 +75,13 @@ class Exp:
         output_df = pd.concat([self.data.test_id_column, decode_predict], axis=1)
         output_df.to_csv(to_absolute_path(output_path), index=False)
 
-    def each_fold(self, i_fold, train_data_tuple, val_data_tuple, best_params):
+    def each_fold(self, i_fold, train_data_tuple, val_data_tuple):
         train_X, train_y = train_data_tuple
         val_X, val_y = val_data_tuple
+
+        best_params = None
+        if self.use_optuna:
+            best_params: Dict = Optuna(self.model_name, train_X, train_y, self.optuna_cv, self.optuna_n_trials).run()
 
         current_model = getattr(model, self.model_name)()
         if self.use_optuna and best_params is not None:
@@ -96,7 +93,6 @@ class Exp:
 
         val_predict = current_model.predict(val_X)
         val_score = f1_score(val_y, val_predict, average="micro")
-        # self.val_scores[i_fold] = val_score
 
         if self.is_average_voting:
             test_predict_proba = current_model.predict_proba(self.test)
@@ -112,15 +108,11 @@ class Exp:
     def run(self):
         X, y = self.get_x_y(self.train)
 
-        best_params = None
-        if self.use_optuna:
-            best_params: Dict = Optuna(self.model_name, X, y, self.optuna_cv, self.optuna_n_trials).run()
-
         skf = StratifiedKFold(n_splits=self.n_splits, shuffle=True)
         for i_fold, (train_index, val_index) in enumerate(skf.split(X, y)):
             train_X, train_y = X.iloc[train_index], y.iloc[train_index]
             val_X, val_y = X.iloc[val_index], y.iloc[val_index]
-            self.each_fold(i_fold, (train_X, train_y), (val_X, val_y), best_params)
+            self.each_fold(i_fold, (train_X, train_y), (val_X, val_y))
 
         if self.is_average_voting:
             predict = self.average_voting()
