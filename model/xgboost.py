@@ -3,7 +3,7 @@ import xgboost as xgb
 
 class XGBoost:
     def __init__(self) -> None:
-        self.model = xgb.XGBClassifier(n_estimators=10000, early_stopping_rounds=30, eval_metric="auc")
+        self.model = xgb.XGBClassifier(eta=0.01, n_estimators=10000, early_stopping_rounds=30, eval_metric="auc")
 
     def fit(self, X, y, eval_set):
         self.model.fit(X, y, eval_set=eval_set, verbose=False)
