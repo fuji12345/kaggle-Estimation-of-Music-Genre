@@ -39,6 +39,7 @@ tensorflow-io-gcs-filesystem = "0.31.0"
 tensorflow = "^2.10.0"
 tensorflow_text = "2.10.0"
 plotly = "^5.18.0"
+xgbfir = "^0.3.1"
 
 
 [build-system]
