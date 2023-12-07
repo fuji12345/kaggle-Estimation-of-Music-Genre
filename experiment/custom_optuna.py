@@ -7,7 +7,7 @@ from sklearn.model_selection import StratifiedKFold
 
 def xgboost_config(trial):
     params_dict = {
-        "eta": trial.suggest_float("eta", 0.001, 0.1),
+        # "eta": trial.suggest_float("eta", 0.001, 0.1),
         "gamma": trial.suggest_float("gamma", 1e-8, 1.0),
         "max_depth": trial.suggest_int("max_depth", 3, 10),
         "min_child_weight": trial.suggest_int("min_child_weight", 0.1, 10.0),
