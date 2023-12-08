@@ -39,7 +39,6 @@ class Exp:
 
         self.models_dict: Dict[int:XGBoost] = {}
         self.test_predicts: Dict[int : np.array] = {}
-        # self.val_scores: np.ndarray = np.empty(self.n_splits)
         self.test_predict_probas: Dict[int : np.array] = {}
 
     def get_x_y(self, data: pd.DataFrame):
@@ -64,13 +63,7 @@ class Exp:
         return weights
 
     def average_voting(self):
-        # weights = self.calculate_weights()
-
         predict_probas_list = [x for x in self.test_predict_probas.values()]
-        # predict_probas_with_weights_list = []
-        # for i_fold, predict_proba in enumerate(predict_probas_list):
-        #     predict_probas_with_weights_list.append(predict_proba * weights[i_fold])
-
         predict_proba_three_dimension = np.array(predict_probas_list)
         predict_proba_mean = np.mean(predict_proba_three_dimension, axis=0)
         predict = np.argmax(predict_proba_mean, axis=1)
@@ -96,7 +89,6 @@ class Exp:
 
         val_predict = current_model.predict(val_X)
         val_score = f1_score(val_y, val_predict, average="micro")
-        # self.val_scores[i_fold] = val_score
 
         if self.is_average_voting:
             test_predict_proba = current_model.predict_proba(self.test)
