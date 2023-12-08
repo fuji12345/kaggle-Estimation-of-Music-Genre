@@ -6,7 +6,7 @@ import tensorflow_hub as hub
 import tensorflow_text
 from hydra.utils import to_absolute_path
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, PolynomialFeatures
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -46,6 +46,15 @@ class MusicGenre:
         self.train.drop(["song_name"], axis=1, inplace=True)
         self.test.drop(["song_name"], axis=1, inplace=True)
 
+    def create_polynomial_features(self):
+        features = ["instrumentalness", "danceability", "speechiness", "duration_ms", "valence"]
+        pf = PolynomialFeatures(include_bias=False).fit(self.train[features])
+        train_created_features = pd.DataFrame(pf.transform(self.train[features])[:, len(features) :])
+        test_created_features = pd.DataFrame(pf.transform(self.test[features])[:, len(features) :])
+
+        self.train = pd.concat([self.train, train_created_features], axis=1)
+        self.test = pd.concat([self.test, test_created_features], axis=1)
+
     def label_encoding(self):
         self.le = LabelEncoder()
         self.train[self.target_column] = self.le.fit_transform(self.train[self.target_column])
@@ -55,5 +64,6 @@ class MusicGenre:
         return decode_predict
 
     def preprocessing(self):
+        self.create_polynomial_features()
         self.new_columns()
         self.song_vector()
