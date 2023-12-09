@@ -2027,6 +2027,20 @@ files = [
 ]
 
 [[package]]
+name = "xgbfir"
+version = "0.3.1"
+description = "Xgbfir is a XGBoost model dump parser, which ranks features as well as feature interactions by different metrics"
+optional = false
+python-versions = "*"
+files = [
+    {file = "xgbfir-0.3.1-py2.py3-none-any.whl", hash = "sha256:963c27480c237d3cbe474c01ca6be9fbdf248b3a1322f89247db1f25b99f18f0"},
+    {file = "xgbfir-0.3.1.tar.gz", hash = "sha256:30fb2fc42ec82ddb106d399e6d9290819a249c3a1a91a9c2cef05f96cb74f90c"},
+]
+
+[package.dependencies]
+xlsxwriter = ">=0.9.3"
+
+[[package]]
 name = "xgboost"
 version = "2.0.2"
 description = "XGBoost Python Package"
@@ -2052,6 +2066,17 @@ pandas = ["pandas"]
 plotting = ["graphviz", "matplotlib"]
 pyspark = ["cloudpickle", "pyspark", "scikit-learn"]
 scikit-learn = ["scikit-learn"]
+
+[[package]]
+name = "xlsxwriter"
+version = "3.1.9"
+description = "A Python module for creating Excel XLSX files."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "XlsxWriter-3.1.9-py3-none-any.whl", hash = "sha256:b61c1a0c786f82644936c0936ec96ee96cd3afb9440094232f7faef9b38689f0"},
+    {file = "XlsxWriter-3.1.9.tar.gz", hash = "sha256:de810bf328c6a4550f4ffd6b0b34972aeb7ffcf40f3d285a0413734f9b63a929"},
+]
 
 [[package]]
 name = "zipp"

@@ -18,6 +18,8 @@ from .custom_optuna import Optuna
 
 class Exp:
     def __init__(self, config) -> None:
+        self.config = config
+
         self.model_name = config.model.name
         self.n_splits = config.n_splits
 
@@ -81,6 +83,9 @@ class Exp:
         train_X, train_y = train_data_tuple
         val_X, val_y = val_data_tuple
 
+        if self.use_optuna and self.config.optuna.in_cv:
+            best_params: Dict = Optuna(self.model_name, train_X, train_y, self.optuna_cv, self.optuna_n_trials).run()
+
         current_model = getattr(model, self.model_name)()
         if self.use_optuna and best_params is not None:
             current_model.set_params(best_params)
@@ -129,7 +134,7 @@ class Exp:
         X, y = self.get_x_y(self.train)
 
         best_params = None
-        if self.use_optuna:
+        if (self.use_optuna) and (not self.config.optuna.in_cv):
             best_params: Dict = Optuna(self.model_name, X, y, self.optuna_cv, self.optuna_n_trials).run()
 
         skf = StratifiedKFold(n_splits=self.n_splits, shuffle=True)

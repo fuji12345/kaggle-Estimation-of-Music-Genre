@@ -1,3 +1,4 @@
-use_optuna: True
+use_optuna: true
+in_cv: true
 cv: 10
-n_trials: 30
+n_trials: 20
