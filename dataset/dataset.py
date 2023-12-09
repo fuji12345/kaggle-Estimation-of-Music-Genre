@@ -13,7 +13,9 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 
 class MusicGenre:
-    def __init__(self) -> None:
+    def __init__(self, config) -> None:
+        self.config = config
+
         self.train = pd.read_csv(to_absolute_path("datasets/train.csv"))
         self.test = pd.read_csv(to_absolute_path("datasets/test.csv"))
 
@@ -102,7 +104,17 @@ class MusicGenre:
         return decode_predict
 
     def preprocessing(self):
-        self.create_features_PCA()
-        self.create_polynomial_features()
-        self.new_columns()
-        self.song_vector()
+        if self.config.preprocessing.pca:
+            self.create_features_PCA()
+
+        if self.config.preprocessing.pf:
+            self.create_polynomial_features()
+
+        if self.config.preprocessing.new_col:
+            self.new_columns()
+
+        if self.config.preprocessing.song_vector:
+            self.song_vector()
+        else:
+            self.train.drop(["song_name"], axis=1, inplace=True)
+            self.test.drop(["song_name"], axis=1, inplace=True)

@@ -27,7 +27,7 @@ class Exp:
 
         self.is_average_voting = config.voting.is_average_voting
 
-        self.data = getattr(dataset, config.data.name)()
+        self.data = getattr(dataset, config.data.name)(config)
         self.data.label_encoding()
         self.data.preprocessing()
 
