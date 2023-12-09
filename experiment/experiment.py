@@ -16,6 +16,8 @@ from .custom_optuna import Optuna
 
 class Exp:
     def __init__(self, config) -> None:
+        self.config = config
+
         self.model_name = config.model.name
         self.n_splits = config.n_splits
 
@@ -75,12 +77,11 @@ class Exp:
         output_df = pd.concat([self.data.test_id_column, decode_predict], axis=1)
         output_df.to_csv(to_absolute_path(output_path), index=False)
 
-    def each_fold(self, i_fold, train_data_tuple, val_data_tuple):
+    def each_fold(self, i_fold, train_data_tuple, val_data_tuple, best_params):
         train_X, train_y = train_data_tuple
         val_X, val_y = val_data_tuple
 
-        best_params = None
-        if self.use_optuna:
+        if self.use_optuna and self.config.optuna.in_cv:
             best_params: Dict = Optuna(self.model_name, train_X, train_y, self.optuna_cv, self.optuna_n_trials).run()
 
         current_model = getattr(model, self.model_name)()
@@ -108,11 +109,15 @@ class Exp:
     def run(self):
         X, y = self.get_x_y(self.train)
 
+        best_params = None
+        if (self.use_optuna) and (not self.config.optuna.in_cv):
+            best_params: Dict = Optuna(self.model_name, X, y, self.optuna_cv, self.optuna_n_trials).run()
+
         skf = StratifiedKFold(n_splits=self.n_splits, shuffle=True)
         for i_fold, (train_index, val_index) in enumerate(skf.split(X, y)):
             train_X, train_y = X.iloc[train_index], y.iloc[train_index]
             val_X, val_y = X.iloc[val_index], y.iloc[val_index]
-            self.each_fold(i_fold, (train_X, train_y), (val_X, val_y))
+            self.each_fold(i_fold, (train_X, train_y), (val_X, val_y), best_params)
 
         if self.is_average_voting:
             predict = self.average_voting()
