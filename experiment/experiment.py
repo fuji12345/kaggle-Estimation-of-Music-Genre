@@ -1,13 +1,15 @@
 from typing import Dict
 
 import dataset
+import matplotlib.pyplot as plt
 import model
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from hydra.utils import to_absolute_path
 from model import XGBoost
 from scipy import stats
-from sklearn.metrics import f1_score
+from sklearn.metrics import confusion_matrix, f1_score
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import MinMaxScaler
 
@@ -25,7 +27,7 @@ class Exp:
 
         self.is_average_voting = config.voting.is_average_voting
 
-        self.data = getattr(dataset, config.data.name)()
+        self.data = getattr(dataset, config.data.name)(config)
         self.data.label_encoding()
         self.data.preprocessing()
 
@@ -39,7 +41,6 @@ class Exp:
 
         self.models_dict: Dict[int:XGBoost] = {}
         self.test_predicts: Dict[int : np.array] = {}
-        # self.val_scores: np.ndarray = np.empty(self.n_splits)
         self.test_predict_probas: Dict[int : np.array] = {}
 
     def get_x_y(self, data: pd.DataFrame):
@@ -64,13 +65,7 @@ class Exp:
         return weights
 
     def average_voting(self):
-        # weights = self.calculate_weights()
-
         predict_probas_list = [x for x in self.test_predict_probas.values()]
-        # predict_probas_with_weights_list = []
-        # for i_fold, predict_proba in enumerate(predict_probas_list):
-        #     predict_probas_with_weights_list.append(predict_proba * weights[i_fold])
-
         predict_proba_three_dimension = np.array(predict_probas_list)
         predict_proba_mean = np.mean(predict_proba_three_dimension, axis=0)
         predict = np.argmax(predict_proba_mean, axis=1)
@@ -96,7 +91,6 @@ class Exp:
 
         val_predict = current_model.predict(val_X)
         val_score = f1_score(val_y, val_predict, average="micro")
-        # self.val_scores[i_fold] = val_score
 
         if self.is_average_voting:
             test_predict_proba = current_model.predict_proba(self.test)
@@ -108,6 +102,28 @@ class Exp:
         self.models_dict[i_fold] = current_model
 
         print(f"cv {i_fold}, train_score: {train_score}, val_score: {val_score}")
+
+        feature_importances = current_model.model.feature_importances_
+        plt.figure(figsize=(10, 6))
+        plt.barh(self.test.columns, feature_importances)
+        plt.xlabel("Feature Importance")
+        plt.title("XGBoost Feature Importance")
+        plt.savefig(to_absolute_path(f"outputs/feature_importances/fig{i_fold}"))
+
+        cm = confusion_matrix(val_y, val_predict)
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(
+            cm,
+            annot=True,
+            fmt="d",
+            cmap="Blues",
+            # xticklabels=,
+            # yticklabels=,
+        )
+        plt.xlabel("Predicted")
+        plt.ylabel("True")
+        plt.title("Confusion Matrix")
+        plt.savefig(to_absolute_path(f"outputs/metrics/fig{i_fold}"))
 
     def run(self):
         X, y = self.get_x_y(self.train)
