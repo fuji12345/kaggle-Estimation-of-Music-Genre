@@ -45,6 +45,11 @@ class Exp:
         self.test_predicts: Dict[int : np.array] = {}
         self.test_predict_probas: Dict[int : np.array] = {}
 
+        self.train_scores = []
+        self.val_scores = []
+
+        self.scale_pos_weight = self.data.scale_pos_weight
+
     def get_x_y(self, data: pd.DataFrame):
         X = data.drop(self.target_column, axis=1)
         y = data[self.target_column]
@@ -84,9 +89,11 @@ class Exp:
         val_X, val_y = val_data_tuple
 
         if self.use_optuna and self.config.optuna.in_cv:
-            best_params: Dict = Optuna(self.model_name, train_X, train_y, self.optuna_cv, self.optuna_n_trials).run()
+            best_params: Dict = Optuna(
+                self.model_name, train_X, train_y, self.optuna_cv, self.optuna_n_trials, self.config
+            ).run()
 
-        current_model = getattr(model, self.model_name)()
+        current_model = getattr(model, self.model_name)(self.scale_pos_weight)
         if self.use_optuna and best_params is not None:
             current_model.set_params(best_params)
         current_model.fit(train_X, train_y, eval_set=[(val_X, val_y)])
@@ -107,6 +114,8 @@ class Exp:
         self.models_dict[i_fold] = current_model
 
         print(f"cv {i_fold}, train_score: {train_score}, val_score: {val_score}")
+        self.train_scores.append(train_score)
+        self.val_scores.append(val_score)
 
         feature_importances = current_model.model.feature_importances_
         plt.figure(figsize=(10, 6))
@@ -135,7 +144,7 @@ class Exp:
 
         best_params = None
         if (self.use_optuna) and (not self.config.optuna.in_cv):
-            best_params: Dict = Optuna(self.model_name, X, y, self.optuna_cv, self.optuna_n_trials).run()
+            best_params: Dict = Optuna(self.model_name, X, y, self.optuna_cv, self.optuna_n_trials, self.config).run()
 
         skf = StratifiedKFold(n_splits=self.n_splits, shuffle=True)
         for i_fold, (train_index, val_index) in enumerate(skf.split(X, y)):
@@ -149,5 +158,8 @@ class Exp:
         else:
             predict = self.majority_voting()
             print("majority voting")
+
+        print(f"average train score: {sum(self.train_scores) / len(self.train_scores)}")
+        print(f"average train score: {sum(self.val_scores) / len(self.val_scores)}")
 
         self.make_output_file(predict)
