@@ -2,3 +2,4 @@ use_optuna: true
 in_cv: true
 cv: 10
 n_trials: 20
+hold_out: true
