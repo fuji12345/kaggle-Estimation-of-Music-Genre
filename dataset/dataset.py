@@ -8,6 +8,7 @@ from hydra.utils import to_absolute_path
 from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, PolynomialFeatures, StandardScaler
+from sklearn.utils.class_weight import compute_class_weight
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -28,6 +29,11 @@ class MusicGenre:
 
         self.test_id_column = self.test["ID"]
         self.drop_id_and_type()
+
+        classes = ["Dark Trap", "Emo", "Hiphop", "Pop", "Rap", "RnB", "Trap Metal", "Underground Rap"]
+        class_weights = compute_class_weight("balanced", classes=classes, y=self.train[self.target_column])
+        inverse_class_weights = 1.0 / class_weights
+        self.scale_pos_weight = sum(inverse_class_weights) / len(inverse_class_weights)
 
     def drop_id_and_type(self):
         self.train.drop(["ID", "type"], axis=1, inplace=True)
