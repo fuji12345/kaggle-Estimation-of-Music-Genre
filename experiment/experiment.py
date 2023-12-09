@@ -1,13 +1,15 @@
 from typing import Dict
 
 import dataset
+import matplotlib.pyplot as plt
 import model
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from hydra.utils import to_absolute_path
 from model import XGBoost
 from scipy import stats
-from sklearn.metrics import f1_score
+from sklearn.metrics import confusion_matrix, f1_score
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import MinMaxScaler
 
@@ -27,7 +29,7 @@ class Exp:
 
         self.is_average_voting = config.voting.is_average_voting
 
-        self.data = getattr(dataset, config.data.name)()
+        self.data = getattr(dataset, config.data.name)(config)
         self.data.label_encoding()
         self.data.preprocessing()
 
@@ -105,6 +107,28 @@ class Exp:
         self.models_dict[i_fold] = current_model
 
         print(f"cv {i_fold}, train_score: {train_score}, val_score: {val_score}")
+
+        feature_importances = current_model.model.feature_importances_
+        plt.figure(figsize=(10, 6))
+        plt.barh(self.test.columns, feature_importances)
+        plt.xlabel("Feature Importance")
+        plt.title("XGBoost Feature Importance")
+        plt.savefig(to_absolute_path(f"outputs/feature_importances/fig{i_fold}"))
+
+        cm = confusion_matrix(val_y, val_predict)
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(
+            cm,
+            annot=True,
+            fmt="d",
+            cmap="Blues",
+            # xticklabels=,
+            # yticklabels=,
+        )
+        plt.xlabel("Predicted")
+        plt.ylabel("True")
+        plt.title("Confusion Matrix")
+        plt.savefig(to_absolute_path(f"outputs/metrics/fig{i_fold}"))
 
     def run(self):
         X, y = self.get_x_y(self.train)
