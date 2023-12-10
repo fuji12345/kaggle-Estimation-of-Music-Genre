@@ -60,6 +60,7 @@ class MusicGenre:
 
     def create_polynomial_features(self):
         features = ["instrumentalness", "danceability", "speechiness", "duration_ms", "valence"]
+        # features = self.contenious_columns
         new_columns_name = [f"A{x}" for x in range(15)]
         pf = PolynomialFeatures(include_bias=False).fit(self.train[features])
         train_created_features = pd.DataFrame(
@@ -94,22 +95,29 @@ class MusicGenre:
         self.train = pd.concat([self.train, train_new_features], axis=1)
         self.test = pd.concat([self.test, test_new_features], axis=1)
 
+    def columns_per_time_signature(self):
+        train_duration_ms_per_time_signature = pd.DataFrame(
+            self.train["duration_ms"] / self.train["time_signature"], columns=["duration_ms_per_time_signature"]
+        )
+        test_duration_ms_per_time_signature = pd.DataFrame(
+            self.test["duration_ms"] / self.test["time_signature"], columns=["duration_ms_per_time_signature"]
+        )
+
+        self.train = pd.concat([self.train, train_duration_ms_per_time_signature], axis=1)
+        self.test = pd.concat([self.test, test_duration_ms_per_time_signature], axis=1)
+
     def label_encoding(self):
         self.le = LabelEncoder()
         self.train[self.target_column] = self.le.fit_transform(self.train[self.target_column])
-
-        """
-        encoding_mapping = dict(zip(self.le.classes_, self.le.transform(self.le.classes_)))
-        print("##################")
-        print(encoding_mapping)
-        print("##################")
-        """
 
     def inverse_label_encoding(self, predict):
         decode_predict = self.le.inverse_transform(predict)
         return decode_predict
 
     def preprocessing(self):
+        if self.config.preprocessing.per_time:
+            self.columns_per_time_signature()
+
         if self.config.preprocessing.pca:
             self.create_features_PCA()
 
