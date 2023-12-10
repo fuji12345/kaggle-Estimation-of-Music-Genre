@@ -24,7 +24,7 @@ class MusicGenre:
 
         self.columns = [x for x in self.train.columns.tolist() if x != self.target_column]
         self.use_columns = [x for x in self.columns if x not in ["ID", "type"]]
-        self.categorical_columns = ["mode", "song_name"]
+        self.categorical_columns = ["key", "mode", "song_name"]
         self.contenious_columns = [x for x in self.use_columns if x not in self.categorical_columns]
 
         self.test_id_column = self.test["ID"]
@@ -80,6 +80,10 @@ class MusicGenre:
     def create_features_PCA(self):
         contenious_train_data = self.train[self.contenious_columns]
         contenious_test_data = self.test[self.contenious_columns]
+        # contenious_train_data = self.train[
+        #     ["instrumentalness", "danceability", "speechiness", "duration_ms", "valence"]
+        # ]
+        # contenious_test_data = self.test[["instrumentalness", "danceability", "speechiness", "duration_ms", "valence"]]
         scaler = StandardScaler()
         scaler = scaler.fit(contenious_train_data)
         pca_train_data_standardized = scaler.transform(contenious_train_data)
