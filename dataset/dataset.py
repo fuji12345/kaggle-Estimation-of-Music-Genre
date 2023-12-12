@@ -27,7 +27,7 @@ class MusicGenre:
 
         self.columns = [x for x in self.train.columns.tolist() if x != self.target_column]
         self.use_columns = [x for x in self.columns if x not in ["ID", "type"]]
-        self.categorical_columns = ["mode"]
+        self.categorical_columns = ["key", "mode"]
         self.contenious_columns = [x for x in self.use_columns if x not in self.categorical_columns]
 
         self.test_id_column = self.test["ID"]
