@@ -42,6 +42,7 @@ plotly = "^5.18.0"
 xgbfir = "^0.3.1"
 matplotlib = "^3.8.2"
 seaborn = "^0.13.0"
+kaleido = "0.2.0"
 
 
 [build-system]
