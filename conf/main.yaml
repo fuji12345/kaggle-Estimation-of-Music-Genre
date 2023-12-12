@@ -9,6 +9,7 @@ voting:
   is_average_voting: true
 
 preprocessing:
+  per_time: true
   pf: true
   pca: true
   new_col: true

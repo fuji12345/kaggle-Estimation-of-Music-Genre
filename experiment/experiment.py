@@ -9,6 +9,7 @@ import seaborn as sns
 from hydra.utils import to_absolute_path
 from model import XGBoost
 from scipy import stats
+from scipy.stats import gmean, hmean
 from sklearn.metrics import confusion_matrix, f1_score
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import MinMaxScaler
@@ -73,8 +74,14 @@ class Exp:
 
     def average_voting(self):
         predict_probas_list = [x for x in self.test_predict_probas.values()]
+        # predict_probas_list = []
+        # for predict_proba in self.test_predict_probas.values():
+        #     predict_probas_list.append(predict_proba * [0.7, 1, 1, 1.5, 1, 1, 1, 0.5])
         predict_proba_three_dimension = np.array(predict_probas_list)
+
         predict_proba_mean = np.mean(predict_proba_three_dimension, axis=0)
+        # predict_proba_mean = gmean(predict_proba_three_dimension, axis=0)
+        # predict_proba_mean = hmean(predict_proba_three_dimension, axis=0)
         predict = np.argmax(predict_proba_mean, axis=1)
         return predict
 

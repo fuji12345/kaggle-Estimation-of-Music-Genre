@@ -75,7 +75,7 @@ class Optuna:
 
     def run(self):
         study = optuna.create_study(direction="maximize")
-        study.optimize(self.objective, n_trials=self.n_trials)
+        study.optimize(self.objective, n_trials=self.n_trials, n_jobs=10)
 
         best_params = study.best_trial.params
         best_score = study.best_trial.value
@@ -85,4 +85,4 @@ class Optuna:
 
     def history_plot(self, study):
         fig = optuna.visualization.plot_optimization_history(study)
-        fig.show()
+        # fig.show()
