@@ -97,7 +97,12 @@ class Exp:
 
         if self.use_optuna and self.config.optuna.in_cv:
             best_params: Dict = Optuna(
-                self.model_name, train_X, train_y, self.optuna_cv, self.optuna_n_trials, self.config
+                self.model_name,
+                train_X,
+                train_y,
+                self.optuna_cv,
+                self.optuna_n_trials,
+                self.config,
             ).run()
 
         current_model = getattr(model, self.model_name)(self.scale_pos_weight)
@@ -151,7 +156,9 @@ class Exp:
 
         best_params = None
         if (self.use_optuna) and (not self.config.optuna.in_cv):
-            best_params: Dict = Optuna(self.model_name, X, y, self.optuna_cv, self.optuna_n_trials, self.config).run()
+            best_params: Dict = Optuna(
+                self.model_name, X, y, self.optuna_cv, self.optuna_n_trials, self.config
+            ).run()
 
         skf = StratifiedKFold(n_splits=self.n_splits, shuffle=True)
         for i_fold, (train_index, val_index) in enumerate(skf.split(X, y)):
