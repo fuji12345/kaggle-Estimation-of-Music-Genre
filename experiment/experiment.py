@@ -82,11 +82,10 @@ class Exp:
         train_X, train_y = train_data_tuple
         val_X, val_y = val_data_tuple
 
+        current_model = getattr(model, self.config.model.name)()
+
         if self.config.optuna.use_optuna and self.config.optuna.in_cv:
             best_params: Dict = Optuna(self.config, train_X, train_y).run()
-
-        current_model = getattr(model, self.config.model.name)()
-        if self.config.optuna.use_optuna and best_params is not None:
             current_model.set_params(best_params)
 
         current_model.fit(train_X, train_y, eval_set=[(val_X, val_y)])
