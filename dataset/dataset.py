@@ -18,10 +18,10 @@ class MusicGenre:
     def __init__(self, config) -> None:
         self.config = config
 
-	#self.train = pd.read_csv(to_absolute_path("datasets/train_embed.csv"))
-        #self.test = pd.read_csv(to_absolute_path("datasets/test_embed.csv")) 
+        # self.train = pd.read_csv(to_absolute_path("datasets/train_embed.csv"))
+        # self.test = pd.read_csv(to_absolute_path("datasets/test_embed.csv"))
         self.train = pd.read_csv(to_absolute_path("datasets/train_new_embed.csv"))
-        self.test = pd.read_csv(to_absolute_path("datasets/test_new_embed.csv"))	  self.train = pd.read_csv(to_absolute_path("datasets/test_embed.csv"))
+        self.test = pd.read_csv(to_absolute_path("datasets/test_new_embed.csv"))
 
         self.target_column = "genre"
 
@@ -65,8 +65,14 @@ class MusicGenre:
         features = ["instrumentalness", "danceability", "speechiness", "duration_ms", "valence"]
         new_columns_name = [f"A{x}" for x in range(15)]
         pf = PolynomialFeatures(include_bias=False).fit(self.train[features])
-        train_created_features = pd.DataFrame(pf.transform(self.train[features])[:, len(features) :], columns=new_columns_name)
-        test_created_features = pd.DataFrame(pf.transform(self.test[features])[:, len(features) :], columns=new_columns_name)
+        train_created_features = pd.DataFrame(
+	    pf.transform(self.train[features])[:, len(features) :],
+	    columns=new_columns_name
+	)
+        test_created_features = pd.DataFrame(
+            pf.transform(self.test[features])[:, len(features) :],
+            columns=new_columns_name,
+        )
 
         drop_columns = ["A0", "A5", "A9", "A12", "A14"]  # 結果を確認し、貢献できていないカラムを落とす
         train_created_features.drop(drop_columns, axis=1, inplace=True)
