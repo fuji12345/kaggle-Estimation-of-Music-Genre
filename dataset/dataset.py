@@ -18,8 +18,10 @@ class MusicGenre:
     def __init__(self, config) -> None:
         self.config = config
 
+	#self.train = pd.read_csv(to_absolute_path("datasets/train_embed.csv"))
+        #self.test = pd.read_csv(to_absolute_path("datasets/test_embed.csv")) 
         self.train = pd.read_csv(to_absolute_path("datasets/train_new_embed.csv"))
-        self.test = pd.read_csv(to_absolute_path("datasets/test_new_embed.csv"))
+        self.test = pd.read_csv(to_absolute_path("datasets/test_new_embed.csv"))	  self.train = pd.read_csv(to_absolute_path("datasets/test_embed.csv"))
 
         self.target_column = "genre"
 
