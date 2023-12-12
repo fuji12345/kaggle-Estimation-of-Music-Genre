@@ -85,10 +85,10 @@ class Exp:
         current_model = getattr(model, self.config.model.name)()
 
         if self.config.optuna.use_optuna and self.config.optuna.in_cv:
-            best_params: Dict = Optuna(self.config, train_X, train_y).run()
+            best_params: Dict = Optuna(self.config, train_X, train_y, i_fold).run()
             current_model.set_params(best_params)
 
-        current_model.fit(train_X, train_y, eval_set=[(val_X, val_y)])
+        current_model.fit(train_X, train_y, eval_set=[(val_X, val_y)], verbose=1)
 
         train_predict = current_model.predict(train_X)
         train_score = f1_score(train_y, train_predict, average="micro")

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import model
 import numpy as np
@@ -38,10 +40,11 @@ def get_model_config(model_name, trial):
 
 
 class Optuna:
-    def __init__(self, config, X, y) -> None:
+    def __init__(self, config, X, y, i_fold=None) -> None:
         self.config = config
+        self.i_fold = i_fold
         self.X, self.y = X, y
-        self.model = getattr(model, self.config.model.name)()
+        self.model = getattr(model, self.config.model.name)(early_stopping_rounds=50)
 
     def objective(self, trial):
         if not self.config.optuna.hold_out:
@@ -53,7 +56,7 @@ class Optuna:
 
                 self.model_params_dict = get_model_config(self.config.model.name, trial)
 
-                self.model.fit(train_X, train_y, eval_set=[(val_X, val_y)])
+                self.model.fit(train_X, train_y, eval_set=[(val_X, val_y)], verbose=False)
                 predict = self.model.predict(val_X)
                 score = f1_score(val_y, predict, average="micro")
                 scores[i_fold] = score
@@ -66,7 +69,7 @@ class Optuna:
 
             self.model_params_dict = get_model_config(self.config.model.name, trial)
 
-            self.model.fit(train_X, train_y, eval_set=[(val_X, val_y)])
+            self.model.fit(train_X, train_y, eval_set=[(val_X, val_y)], verbose=False)
             predict = self.model.predict(test_X)
             score = f1_score(test_y, predict, average="micro")
             return score
@@ -82,5 +85,8 @@ class Optuna:
         return best_params
 
     def history_plot(self, study):
+        path = Path(to_absolute_path(f"outputs/optuna_history/result{self.i_fold}.png"))
+        path.parent.mkdir(exist_ok=True, parents=True)
+
         fig = optuna.visualization.plot_optimization_history(study)
-        fig.write_image(to_absolute_path("outputs/optuna_history.png"))
+        fig.write_image(to_absolute_path(path))
