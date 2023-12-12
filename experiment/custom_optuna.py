@@ -38,25 +38,20 @@ def get_model_config(model_name, trial):
 
 
 class Optuna:
-    def __init__(self, model_name, X, y, cv, n_trials, config) -> None:
+    def __init__(self, config, X, y) -> None:
         self.config = config
-
-        self.model_name = model_name
         self.X, self.y = X, y
-
-        self.cv = cv
-        self.n_trials = n_trials
-        self.model = getattr(model, self.model_name)()
+        self.model = getattr(model, self.config.model.name)()
 
     def objective(self, trial):
         if not self.config.optuna.hold_out:
-            skf = StratifiedKFold(n_splits=self.cv, shuffle=True)
-            scores = np.zeros(self.cv)
+            skf = StratifiedKFold(n_splits=self.config.optuna.cv, shuffle=True)
+            scores = np.zeros(self.config.optuna.cv)
             for i_fold, (train_index, val_index) in enumerate(skf.split(self.X, self.y)):
                 train_X, train_y = self.X.iloc[train_index], self.y.iloc[train_index]
                 val_X, val_y = self.X.iloc[val_index], self.y.iloc[val_index]
 
-                self.model_params_dict = get_model_config(self.model_name, trial)
+                self.model_params_dict = get_model_config(self.config.model.name, trial)
 
                 self.model.fit(train_X, train_y, eval_set=[(val_X, val_y)])
                 predict = self.model.predict(val_X)
@@ -69,7 +64,7 @@ class Optuna:
             train_val_X, test_X, train_val_y, test_y = train_test_split(self.X, self.y, test_size=0.2)
             train_X, val_X, train_y, val_y = train_test_split(train_val_X, train_val_y, test_size=0.2)
 
-            self.model_params_dict = get_model_config(self.model_name, trial)
+            self.model_params_dict = get_model_config(self.config.model.name, trial)
 
             self.model.fit(train_X, train_y, eval_set=[(val_X, val_y)])
             predict = self.model.predict(test_X)
@@ -78,7 +73,7 @@ class Optuna:
 
     def run(self):
         study = optuna.create_study(direction="maximize")
-        study.optimize(self.objective, n_trials=self.n_trials, n_jobs=1, show_progress_bar=False)
+        study.optimize(self.objective, n_trials=self.config.optuna.n_trials, n_jobs=1)
 
         best_params = study.best_trial.params
         best_score = study.best_trial.value

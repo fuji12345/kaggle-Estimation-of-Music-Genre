@@ -83,14 +83,7 @@ class Exp:
         val_X, val_y = val_data_tuple
 
         if self.config.optuna.use_optuna and self.config.optuna.in_cv:
-            best_params: Dict = Optuna(
-                self.config.model.name,
-                train_X,
-                train_y,
-                self.config.optuna.cv,
-                self.config.optuna.n_trials,
-                self.config,
-            ).run()
+            best_params: Dict = Optuna(self.config, train_X, train_y).run()
 
         current_model = getattr(model, self.config.model.name)()
         if self.config.optuna.use_optuna and best_params is not None:
@@ -123,9 +116,7 @@ class Exp:
 
         best_params = None
         if (self.config.optuna.use_optuna) and (not self.config.optuna.in_cv):
-            best_params: Dict = Optuna(
-                self.config.model.name, X, y, self.config.optuna.cv, self.config.optuna.n_trials, self.config
-            ).run()
+            best_params: Dict = Optuna(self.config, X, y).run()
 
         skf = StratifiedKFold(n_splits=self.config.n_splits, shuffle=True)
         for i_fold, (train_index, val_index) in enumerate(skf.split(X, y)):
