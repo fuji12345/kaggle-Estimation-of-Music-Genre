@@ -1,21 +1,24 @@
+import matplotlib.pyplot as plt
 import model
 import numpy as np
 import optuna
+from hydra.utils import to_absolute_path
 from sklearn.metrics import f1_score
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
 
 def xgboost_config(trial):
     params_dict = {
-        # "eta": trial.suggest_float("eta", 1e-5, 1.0, log=True),
-        # "gamma": trial.suggest_float("gamma", 1e-8, 1e2, log=True),
-        # "max_depth": trial.suggest_int("max_depth", 3, 10),
-        # "min_child_weight": trial.suggest_int("min_child_weight", 1e-8, 8),
-        # "subsample": trial.suggest_float("subsample", 0.5, 1.0),
-        # "colsample_bytree": trial.suggest_float("colsample_bytree", 0.5, 1.0),
+        # "eta": trial.suggest_float("eta", 1e-8, 1.0, log=True),
+        # "gamma": trial.suggest_float("gamma", 1e-8, 1.0, log=True),
+        # "max_depth": trial.suggest_int("max_depth", 3, 9),
+        # "min_child_weight": trial.suggest_int("min_child_weight", 2, 10),
+        # "subsample": trial.suggest_float("subsample", 0.2, 1.0),
+        # "colsample_bytree": trial.suggest_float("colsample_bytree", 0.2, 1.0),
         # "colsample_bylevel": trial.suggest_float("colsample_bylevel", 0.5, 1.0),
-        # "lambda": trial.suggest_float("lambda", 1e-8, 1e2, log=True),
-        # "alpha": trial.suggest_float("alpha", 1e-8, 1e2, log=True),
+        # "lambda": trial.suggest_float("lambda", 1e-8, 1.0, log=True),
+        # "alpha": trial.suggest_float("alpha", 1e-8, 1.0, log=True),
+        #
         "eta": trial.suggest_float("eta", 0.0001, 1.0),
         "gamma": trial.suggest_float("gamma", 0.0001, 0.1),
         "max_depth": trial.suggest_int("max_depth", 1, 4),
@@ -75,7 +78,7 @@ class Optuna:
 
     def run(self):
         study = optuna.create_study(direction="maximize")
-        study.optimize(self.objective, n_trials=self.n_trials, n_jobs=10)
+        study.optimize(self.objective, n_trials=self.n_trials, n_jobs=1, show_progress_bar=False)
 
         best_params = study.best_trial.params
         best_score = study.best_trial.value
@@ -85,4 +88,4 @@ class Optuna:
 
     def history_plot(self, study):
         fig = optuna.visualization.plot_optimization_history(study)
-        # fig.show()
+        fig.write_image(to_absolute_path("outputs/optuna_history.png"))
