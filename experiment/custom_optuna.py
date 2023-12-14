@@ -44,7 +44,7 @@ class Optuna:
         self.config = config
         self.i_fold = i_fold
         self.X, self.y = X, y
-        self.model = getattr(model, self.config.model.name)(seed=self.config.seed, early_stopping_rounds=50)
+        self.model = getattr(model, self.config.model.name)(config=self.config, early_stopping_rounds=50)
 
     def objective(self, trial):
         if not self.config.optuna.hold_out:

@@ -82,7 +82,7 @@ class Exp:
         train_X, train_y = train_data_tuple
         val_X, val_y = val_data_tuple
 
-        current_model = getattr(model, self.config.model.name)(seed=self.config.seed)
+        current_model = getattr(model, self.config.model.name)(config=self.config)
 
         if self.config.optuna.use_optuna and self.config.optuna.in_cv:
             best_params: Dict = Optuna(self.config, train_X, train_y, i_fold).run()
