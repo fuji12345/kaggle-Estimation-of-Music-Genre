@@ -3,6 +3,8 @@ defaults:
   - data: base
   - optuna: base
 
+seed: 42
+
 n_splits: 10
 
 voting:

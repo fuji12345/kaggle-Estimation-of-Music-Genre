@@ -18,10 +18,10 @@ class MusicGenre:
     def __init__(self, config) -> None:
         self.config = config
 
-        # self.train = pd.read_csv(to_absolute_path("datasets/train_embed.csv"))
-        # self.test = pd.read_csv(to_absolute_path("datasets/test_embed.csv"))
-        self.train = pd.read_csv(to_absolute_path("datasets/train_new_embed.csv"))
-        self.test = pd.read_csv(to_absolute_path("datasets/test_new_embed.csv"))
+        self.train = pd.read_csv(to_absolute_path("datasets/train_embed16.csv"))
+        self.test = pd.read_csv(to_absolute_path("datasets/test_embed16.csv"))
+        # self.train = pd.read_csv(to_absolute_path("datasets/train_new_embed.csv"))
+        # self.test = pd.read_csv(to_absolute_path("datasets/test_new_embed.csv"))
 
         self.target_column = "genre"
 
@@ -69,9 +69,8 @@ class MusicGenre:
         new_columns_name = [f"A{x}" for x in range(15)]
         pf = PolynomialFeatures(include_bias=False).fit(self.train[features])
         train_created_features = pd.DataFrame(
-	    pf.transform(self.train[features])[:, len(features) :],
-	    columns=new_columns_name
-	)
+            pf.transform(self.train[features])[:, len(features) :], columns=new_columns_name
+        )
         test_created_features = pd.DataFrame(
             pf.transform(self.test[features])[:, len(features) :],
             columns=new_columns_name,

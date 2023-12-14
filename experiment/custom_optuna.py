@@ -44,11 +44,11 @@ class Optuna:
         self.config = config
         self.i_fold = i_fold
         self.X, self.y = X, y
-        self.model = getattr(model, self.config.model.name)(early_stopping_rounds=50)
+        self.model = getattr(model, self.config.model.name)(seed=self.config.seed, early_stopping_rounds=50)
 
     def objective(self, trial):
         if not self.config.optuna.hold_out:
-            skf = StratifiedKFold(n_splits=self.config.optuna.cv, shuffle=True)
+            skf = StratifiedKFold(n_splits=self.config.optuna.cv, shuffle=True, random_state=self.config.seed)
             scores = np.zeros(self.config.optuna.cv)
             for i_fold, (train_index, val_index) in enumerate(skf.split(self.X, self.y)):
                 train_X, train_y = self.X.iloc[train_index], self.y.iloc[train_index]

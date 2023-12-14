@@ -4,13 +4,14 @@ from .utils import f1_micro
 
 
 class XGBoost:
-    def __init__(self, early_stopping_rounds=100) -> None:
+    def __init__(self, config, early_stopping_rounds=100) -> None:
         self.model = xgb.XGBClassifier(
             n_estimators=10000,
             early_stopping_rounds=early_stopping_rounds,
             eval_metric=f1_micro,
             objective="multi:softmax",
             num_class=8,
+            random_state=config.seed,
         )
 
     def fit(self, X, y, eval_set, verbose=False):

@@ -82,7 +82,7 @@ class Exp:
         train_X, train_y = train_data_tuple
         val_X, val_y = val_data_tuple
 
-        current_model = getattr(model, self.config.model.name)()
+        current_model = getattr(model, self.config.model.name)(seed=self.config.seed)
 
         if self.config.optuna.use_optuna and self.config.optuna.in_cv:
             best_params: Dict = Optuna(self.config, train_X, train_y, i_fold).run()
@@ -117,7 +117,7 @@ class Exp:
         if (self.config.optuna.use_optuna) and (not self.config.optuna.in_cv):
             best_params: Dict = Optuna(self.config, X, y).run()
 
-        skf = StratifiedKFold(n_splits=self.config.n_splits, shuffle=True)
+        skf = StratifiedKFold(n_splits=self.config.n_splits, shuffle=True, random_state=self.config.seed)
         for i_fold, (train_index, val_index) in enumerate(skf.split(X, y)):
             train_X, train_y = X.iloc[train_index], y.iloc[train_index]
             val_X, val_y = X.iloc[val_index], y.iloc[val_index]
@@ -131,6 +131,6 @@ class Exp:
             print("majority voting")
 
         print(f"average train score: {sum(self.train_scores) / len(self.train_scores)}")
-        print(f"average train score: {sum(self.val_scores) / len(self.val_scores)}")
+        print(f"average val score: {sum(self.val_scores) / len(self.val_scores)}")
 
         self.make_output_file(predict)
