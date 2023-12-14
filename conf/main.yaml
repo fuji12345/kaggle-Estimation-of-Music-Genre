@@ -15,4 +15,5 @@ preprocessing:
   pf: true
   pca: true
   new_col: true
+  diff_el: true
   song_vector: true

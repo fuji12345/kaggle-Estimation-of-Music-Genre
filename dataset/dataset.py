@@ -48,6 +48,10 @@ class MusicGenre:
         self.train["energy_loudness"] = self.train["energy"] * self.train["loudness"]
         self.test["energy_loudness"] = self.test["energy"] * self.test["loudness"]
 
+    def diff_energy_loudness(self):
+        self.train["diff_energy_loudness"] = self.train["energy"] - self.train["loudness"]
+        self.test["diff_energy_loudness"] = self.test["energy"] - self.test["loudness"]
+
     def flatten_vector(self, vector):
         summed_vector = tf.reduce_sum(vector, axis=1)
         return tf.reshape(summed_vector, shape=(-1,))
@@ -125,20 +129,31 @@ class MusicGenre:
         return decode_predict
 
     def preprocessing(self):
+        print("##################")
+        print("preprocessing:")
         if self.config.preprocessing.per_time:
             self.columns_per_time_signature()
+            print("per_time")
 
         if self.config.preprocessing.pca:
             self.create_features_PCA()
+            print("pca")
 
         if self.config.preprocessing.pf:
             self.create_polynomial_features()
+            print("pf")
 
         if self.config.preprocessing.new_col:
             self.new_columns()
+            print("new_col")
+
+        if self.config.preprocessing.diff_el:
+            self.diff_energy_loudness()
+            print("diff_el")
 
         # if self.config.preprocessing.song_vector:
         #     self.song_vector()
         # else:
         #     self.train.drop(["song_name"], axis=1, inplace=True)
         #     self.test.drop(["song_name"], axis=1, inplace=True)
+        print("#######################")
