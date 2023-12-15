@@ -1,27 +1,23 @@
-# import ssl
+import ssl
 
 import pandas as pd
-
-# import tensorflow as tf
-# import tensorflow_hub as hub
-# import tensorflow_text
+import tensorflow as tf
+import tensorflow_hub as hub
+import tensorflow_text
 from hydra.utils import to_absolute_path
 from sklearn.decomposition import PCA
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, PolynomialFeatures, StandardScaler
 from sklearn.utils.class_weight import compute_class_weight
 
-# ssl._create_default_https_context = ssl._create_unverified_context
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 class MusicGenre:
     def __init__(self, config) -> None:
         self.config = config
 
-        self.train = pd.read_csv(to_absolute_path("datasets/train_embed16.csv"))
-        self.test = pd.read_csv(to_absolute_path("datasets/test_embed16.csv"))
-        # self.train = pd.read_csv(to_absolute_path("datasets/train_new_embed.csv"))
-        # self.test = pd.read_csv(to_absolute_path("datasets/test_new_embed.csv"))
+        self.train = pd.read_csv(to_absolute_path("datasets/train.csv"))
+        self.test = pd.read_csv(to_absolute_path("datasets/test.csv"))
 
         self.target_column = "genre"
 
@@ -69,7 +65,6 @@ class MusicGenre:
 
     def create_polynomial_features(self):
         features = ["instrumentalness", "danceability", "speechiness", "duration_ms", "valence"]
-        # features = self.contenious_columns
         new_columns_name = [f"A{x}" for x in range(15)]
         pf = PolynomialFeatures(include_bias=False).fit(self.train[features])
         train_created_features = pd.DataFrame(
@@ -80,7 +75,7 @@ class MusicGenre:
             columns=new_columns_name,
         )
 
-        drop_columns = ["A0", "A5", "A9", "A12", "A14"]  # 結果を確認し、貢献できていないカラムを落とす
+        drop_columns = ["A0", "A5", "A9", "A12", "A14"]
         train_created_features.drop(drop_columns, axis=1, inplace=True)
         test_created_features.drop(drop_columns, axis=1, inplace=True)
 
@@ -90,10 +85,6 @@ class MusicGenre:
     def create_features_PCA(self):
         contenious_train_data = self.train[self.contenious_columns]
         contenious_test_data = self.test[self.contenious_columns]
-        # contenious_train_data = self.train[
-        #     ["instrumentalness", "danceability", "speechiness", "duration_ms", "valence"]
-        # ]
-        # contenious_test_data = self.test[["instrumentalness", "danceability", "speechiness", "duration_ms", "valence"]]
         scaler = StandardScaler()
         scaler = scaler.fit(contenious_train_data)
         pca_train_data_standardized = scaler.transform(contenious_train_data)
@@ -129,31 +120,23 @@ class MusicGenre:
         return decode_predict
 
     def preprocessing(self):
-        print("##################")
-        print("preprocessing:")
         if self.config.preprocessing.per_time:
             self.columns_per_time_signature()
-            print("per_time")
 
         if self.config.preprocessing.pca:
             self.create_features_PCA()
-            print("pca")
 
         if self.config.preprocessing.pf:
             self.create_polynomial_features()
-            print("pf")
 
         if self.config.preprocessing.new_col:
             self.new_columns()
-            print("new_col")
 
         if self.config.preprocessing.diff_el:
             self.diff_energy_loudness()
-            print("diff_el")
 
-        # if self.config.preprocessing.song_vector:
-        #     self.song_vector()
-        # else:
-        #     self.train.drop(["song_name"], axis=1, inplace=True)
-        #     self.test.drop(["song_name"], axis=1, inplace=True)
-        print("#######################")
+        if self.config.preprocessing.song_vector:
+            self.song_vector()
+        else:
+            self.train.drop(["song_name"], axis=1, inplace=True)
+            self.test.drop(["song_name"], axis=1, inplace=True)
